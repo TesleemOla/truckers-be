@@ -50,7 +50,9 @@ export class AuthService {
     if (!userdetails) {
       throw new Error('User not found');
     }
-    const { password, ...payload} = userdetails;
+    const userObj = (userdetails as any).toObject ? (userdetails as any).toObject() : userdetails;
+    const { password, ...payload} = userObj;
+
     const verifyPassword = await this.usersService.validatePassword(user.password, password);
     if (!verifyPassword) {
       throw new Error('Invalid password');
