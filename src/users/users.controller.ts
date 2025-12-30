@@ -9,6 +9,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Request() req) {
+    
     const user = await this.usersService.findById(req.user.userId);
     if (!user) {
       throw new UnauthorizedException('Not signed in. Please login again.');

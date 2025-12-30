@@ -15,22 +15,52 @@ export class AuthService {
       user &&
       (await this.usersService.validatePassword(password, user.password))
     ) {
+      // Ensure 'user' is a plain object if it comes from Mongoose
+      // If usersService.findByEmail returns a Document, use user.toObject()
+      // Assuming here user might be a Document or POJO.
+      // const userObj = typeof user.toObject === 'function' ? user.toObject() : user;
       const { password, ...result } = user;
       return result;
     }
     return null;
   }
 
-  login(user: { email: string; _id: string; role: string; name: string }) {
-    const payload = { email: user.email, sub: user._id, role: user.role };
+  async checkUser( access_token: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(access_token);
+      const user = await this.usersService.findByEmail(payload.email);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return {
+        email: user.email,
+        id: user._id,
+        name: user.name,
+        role: user.role,
+      };
+    } catch (error) {
+      throw new Error('Invalid token');
+    }
+  }
+
+  async login(user: { email: string; password: string}) {
+    const userdetails = await this.usersService.findByEmail(user.email);
+    if (!userdetails) {
+      throw new Error('User not found');
+    }
+    const { password, ...payload} = userdetails;
+    const verifyPassword = await this.usersService.validatePassword(user.password, password);
+    if (!verifyPassword) {
+      throw new Error('Invalid password');
+    }
+    
     return {
       access_token: this.jwtService.sign(payload),
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      ...payload
+      }
     };
   }
 
@@ -47,9 +77,7 @@ export class AuthService {
     const user = await this.usersService.create(registerDto);
     return this.login({
       email: user.email,
-      _id: String(user._id),
-      role: String(user.role),
-      name: user.name,
+      password: registerDto.password
     });
   }
 }

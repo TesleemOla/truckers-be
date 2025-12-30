@@ -5,6 +5,8 @@ import {
   Res,
   UseGuards,
   Request,
+  Get,
+  UnauthorizedException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -48,12 +50,28 @@ export class AuthController {
   }
 
   @UseGuards(LocalAuthGuard)
+  @Get('profile')
+  async getProfile(@Request() req) {
+    const userdetails = await this.authService.checkUser(req.cookies.access_token);
+
+    if (!userdetails) {
+      throw new UnauthorizedException('Not signed in. Please login again.');
+    }
+    console.log(userdetails);
+
+
+    return userdetails;
+  }
+
+  @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(
+  async login(
     @Request() req: RequestWithUser,
+    @Body() loginDto: { email: string; password: string },
     @Res({ passthrough: true }) res: ResponseWithUser,
   ) {
-    const result = this.authService.login(req.user);
+    const result = await this.authService.login(loginDto);
+    console.log(result);
     // Set HTTP-only cookie
     res.cookie('access_token', result.access_token, {
       httpOnly: true,
