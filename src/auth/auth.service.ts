@@ -26,7 +26,6 @@ export class AuthService {
   }
 
   async checkUser( access_token: string) {
-    try {
       const payload = await this.jwtService.verifyAsync(access_token);
       const user = await this.usersService.findByEmail(payload.email);
 
@@ -40,9 +39,7 @@ export class AuthService {
         name: user.name,
         role: user.role,
       };
-    } catch (error) {
-      throw new Error('Invalid token');
-    }
+   
   }
 
   async login(user: { email: string; password: string}) {

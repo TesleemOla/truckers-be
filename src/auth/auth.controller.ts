@@ -49,18 +49,19 @@ export class AuthController {
     return { user: result.user };
   }
 
-  @UseGuards(LocalAuthGuard)
   @Get('profile')
   async getProfile(@Request() req) {
+    try{
     const userdetails = await this.authService.checkUser(req.cookies.access_token);
 
     if (!userdetails) {
       throw new UnauthorizedException('Not signed in. Please login again.');
     }
-    console.log(userdetails);
-
-
-    return userdetails;
+   
+    return {user: userdetails};
+  }catch(err){
+    throw new UnauthorizedException('Not signed in. Please login again.');
+  }
   }
 
   @UseGuards(LocalAuthGuard)
@@ -71,7 +72,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: ResponseWithUser,
   ) {
     const result = await this.authService.login(loginDto);
-    console.log(result);
     // Set HTTP-only cookie
     res.cookie('access_token', result.access_token, {
       httpOnly: true,

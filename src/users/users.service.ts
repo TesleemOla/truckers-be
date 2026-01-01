@@ -30,6 +30,14 @@ export class UsersService {
     return this.userModel.findById(id).exec();
   }
 
+  async findAll(): Promise<UserDocument[]> {
+    return this.userModel.find().exec();
+  }
+
+  async findbyRole(role: string): Promise<UserDocument[]> {
+    return this.userModel.find({ role }).exec();
+  }
+
   async validatePassword(
     password: string,
     hashedPassword: string,
