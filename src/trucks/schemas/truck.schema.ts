@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Types, Query } from 'mongoose';
 
 export type TruckDocument = Truck & Document;
 
@@ -40,6 +40,13 @@ export class Truck {
     address?: string;
     lastUpdated: Date;
   };
+
+  @Prop({ default: false })
+  isDeleted: boolean;
 }
 
 export const TruckSchema = SchemaFactory.createForClass(Truck);
+
+TruckSchema.pre(/^find/, function (this: Query<any, any>) {
+  this.where({ isDeleted: { $ne: true } });
+});

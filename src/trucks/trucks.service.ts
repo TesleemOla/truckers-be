@@ -7,7 +7,7 @@ import { Truck, TruckDocument } from './schemas/truck.schema';
 export class TrucksService {
   constructor(
     @InjectModel(Truck.name) private truckModel: Model<TruckDocument>,
-  ) {}
+  ) { }
 
   async create(createTruckDto: any): Promise<Truck> {
     const truck = new this.truckModel(createTruckDto);
@@ -40,7 +40,7 @@ export class TrucksService {
   }
 
   async delete(id: string): Promise<void> {
-    await this.truckModel.findByIdAndDelete(id).exec();
+    await this.truckModel.findByIdAndUpdate(id, { isDeleted: true }).exec();
   }
 }
 

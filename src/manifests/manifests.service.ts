@@ -7,7 +7,7 @@ import { Manifest, ManifestDocument } from './schemas/manifest.schema';
 export class ManifestsService {
   constructor(
     @InjectModel(Manifest.name) private manifestModel: Model<ManifestDocument>,
-  ) {}
+  ) { }
 
   async create(createManifestDto: any): Promise<Manifest> {
     const manifest = new this.manifestModel(createManifestDto);
@@ -90,6 +90,6 @@ export class ManifestsService {
   }
 
   async delete(id: string): Promise<void> {
-    await this.manifestModel.findByIdAndDelete(id).exec();
+    await this.manifestModel.findByIdAndUpdate(id, { isDeleted: true }).exec();
   }
 }

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Types, Query } from 'mongoose';
 
 export type ManifestDocument = Manifest & Document;
 
@@ -76,6 +76,13 @@ export class Manifest {
 
   @Prop()
   notes?: string;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
 }
 
 export const ManifestSchema = SchemaFactory.createForClass(Manifest);
+
+ManifestSchema.pre(/^find/, function (this: Query<any, any>) {
+  this.find({ isDeleted: { $ne: true } });
+});

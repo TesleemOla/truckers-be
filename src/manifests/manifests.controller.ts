@@ -18,10 +18,11 @@ import { ParseObjectIdPipe } from '../common/pipes/parse-object-id.pipe';
 import { CreateManifestDto } from './dto/create-manifest.dto';
 import { UpdateManifestDto } from './dto/update-manifest.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { TrucksService } from 'src/trucks/trucks.service';
 
 interface RequestWithUser {
   user: {
-    userId: string;
+    _id: string;
     role: string;
   };
 }
@@ -29,7 +30,10 @@ interface RequestWithUser {
 @Controller('manifests')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ManifestsController {
-  constructor(private readonly manifestsService: ManifestsService) { }
+  constructor(
+    private readonly manifestsService: ManifestsService,
+    private readonly trucksService: TrucksService,
+  ) { }
 
   @Post()
   @Roles('admin', 'dispatcher')
@@ -45,7 +49,7 @@ export class ManifestsController {
   findAll(@Request() req: RequestWithUser) {
     try {
       if (req.user && req.user.role === 'driver') {
-        return this.manifestsService.findByDriver(req.user.userId);
+        return this.manifestsService.findByDriver(req.user._id);
       }
       return this.manifestsService.findAll();
     } catch (error) {
@@ -77,8 +81,13 @@ export class ManifestsController {
 
   @Put(':id/departure')
   @Roles('admin', 'dispatcher')
-  recordDeparture(@Param('id', ParseObjectIdPipe) id: string) {
+  async recordDeparture(@Param('id', ParseObjectIdPipe) id: string) {
     try {
+      await this.manifestsService.update(id, { status: 'in-transit' });
+      const manifest = await this.manifestsService.findOne(id);
+      if (manifest && manifest.truck) {
+        await this.trucksService.update(manifest.truck._id.toString(), { status: 'in-transit' });
+      }
       return this.manifestsService.recordDeparture(id);
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -99,8 +108,13 @@ export class ManifestsController {
 
   @Put(':id/arrival')
   @Roles('admin', 'dispatcher')
-  recordArrival(@Param('id', ParseObjectIdPipe) id: string) {
+  async recordArrival(@Param('id', ParseObjectIdPipe) id: string) {
     try {
+      const manifest = await this.manifestsService.findOne(id);
+      if (manifest) {
+        this.trucksService.update(manifest.truck._id.toString(), { status: 'available' });
+      }
+      this.manifestsService.update(id, { status: 'completed' });
       return this.manifestsService.recordArrival(id);
     } catch (error) {
       throw new BadRequestException(error.message);
