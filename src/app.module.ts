@@ -15,6 +15,9 @@ import { ManifestsModule } from './manifests/manifests.module';
     }),
     MongooseModule.forRoot(
       process.env.MONGODB_URI!,
+      {
+        autoIndex: false
+      }
     ),
     CacheModule.register({
       isGlobal: true,
