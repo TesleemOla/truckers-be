@@ -14,7 +14,7 @@ import { ManifestsModule } from './manifests/manifests.module';
       envFilePath: '.env',
     }),
     MongooseModule.forRoot(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/transport-manifest',
+      process.env.MONGODB_URI!,
     ),
     CacheModule.register({
       isGlobal: true,
