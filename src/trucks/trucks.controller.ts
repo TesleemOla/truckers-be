@@ -8,7 +8,9 @@ import {
   Param,
   UseGuards,
   BadRequestException,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { TrucksService } from './trucks.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -20,6 +22,7 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 
 @Controller('trucks')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@UseInterceptors(CacheInterceptor)
 export class TrucksController {
   constructor(private readonly trucksService: TrucksService) { }
 

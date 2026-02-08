@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Manifest, ManifestDocument } from './schemas/manifest.schema';
+import { LocationGateway } from './manifests.gateway';
 
 @Injectable()
 export class ManifestsService {
   constructor(
     @InjectModel(Manifest.name) private manifestModel: Model<ManifestDocument>,
+    private readonly locationGateway: LocationGateway,
   ) { }
 
   async create(createManifestDto: any): Promise<Manifest> {
@@ -16,7 +18,7 @@ export class ManifestsService {
 
   async findAll(): Promise<Manifest[]> {
     return this.manifestModel
-      .find()
+      .find().limit(50)
       .populate('truck', 'truckNumber licensePlate')
       .populate('driver', 'name email')
       .sort({ createdAt: -1 })
@@ -73,7 +75,12 @@ export class ManifestsService {
     manifest.locationHistory.push(locationUpdate);
     manifest.lastReportedLocation = locationUpdate;
 
-    return manifest.save();
+    const savedManifest = await manifest.save();
+
+    // Broadcast location update via WebSocket
+    this.locationGateway.sendLocationUpdate(id, locationUpdate);
+
+    return savedManifest;
   }
 
   async recordArrival(id: string): Promise<Manifest | null> {

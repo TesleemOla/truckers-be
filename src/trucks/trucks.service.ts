@@ -15,7 +15,7 @@ export class TrucksService {
   }
 
   async findAll(): Promise<Truck[]> {
-    return this.truckModel.find().populate('assignedDriver', 'name email').exec();
+    return this.truckModel.find().limit(50).populate('assignedDriver', 'name email').exec();
   }
 
   async findOne(id: string): Promise<Truck | null> {

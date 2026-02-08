@@ -9,7 +9,9 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  UseInterceptors,
 } from '@nestjs/common';
+import { HttpCacheInterceptor } from '../common/interceptors/http-cache.interceptor';
 import { ManifestsService } from './manifests.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -29,6 +31,7 @@ interface RequestWithUser {
 
 @Controller('manifests')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@UseInterceptors(HttpCacheInterceptor)
 export class ManifestsController {
   constructor(
     private readonly manifestsService: ManifestsService,

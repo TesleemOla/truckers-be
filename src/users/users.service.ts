@@ -6,7 +6,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
   async create(createUserDto: {
     email: string;
@@ -31,7 +31,7 @@ export class UsersService {
   }
 
   async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().limit(50).exec();
   }
 
   async findbyRole(role: string): Promise<UserDocument[]> {
