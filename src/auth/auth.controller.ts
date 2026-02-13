@@ -30,7 +30,7 @@ interface ResponseWithUser extends Response {
 }
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @Post('register')
   async register(
@@ -42,7 +42,7 @@ export class AuthController {
     res.cookie('access_token', result.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -51,17 +51,17 @@ export class AuthController {
 
   @Get('profile')
   async getProfile(@Request() req) {
-    try{
-    const userdetails = await this.authService.checkUser(req.cookies.access_token);
+    try {
+      const userdetails = await this.authService.checkUser(req.cookies.access_token);
 
-    if (!userdetails) {
+      if (!userdetails) {
+        throw new UnauthorizedException('Not signed in. Please login again.');
+      }
+
+      return { user: userdetails };
+    } catch (err) {
       throw new UnauthorizedException('Not signed in. Please login again.');
     }
-   
-    return {user: userdetails};
-  }catch(err){
-    throw new UnauthorizedException('Not signed in. Please login again.');
-  }
   }
 
   @UseGuards(LocalAuthGuard)
