@@ -35,10 +35,30 @@ export class LocationGateway implements OnGatewayConnection {
     }
 
     sendLocationUpdate(manifestId: string, location: any) {
-        this.server.to(`manifest_${manifestId}`).emit('locationUpdated', {
+        const payload = {
             manifestId,
             location,
             timestamp: new Date(),
-        });
+        };
+
+        // Send to specific manifest room
+        this.server.to(`manifest_${manifestId}`).emit('locationUpdated', payload);
+
+        // Also emit globally for the admin map/dashboard to see all updates
+        this.server.emit('allLocationUpdates', payload);
+    }
+
+    sendTruckLocationUpdate(truckId: string, location: any) {
+        const payload = {
+            truckId,
+            location,
+            timestamp: new Date(),
+        };
+
+        // Emit to specific truck room (if any client joined truck room)
+        this.server.to(`truck_${truckId}`).emit('truckLocationUpdated', payload);
+
+        // Also emit globally
+        this.server.emit('allTruckLocationUpdates', payload);
     }
 }

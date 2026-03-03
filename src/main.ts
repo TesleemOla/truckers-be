@@ -12,7 +12,7 @@ async function bootstrap() {
 
   // Robust CORS configuration
   const frontendUrl = configService.get<string>('FRONTEND_URL');
-  const origins: string[] = ["http://localhost:3000"];
+  const origins: string[] = [];
   if (frontendUrl) {
     frontendUrl.split(',').forEach((url) => {
       // Sanitize: remove whitespace, quotes, and trailing slashes

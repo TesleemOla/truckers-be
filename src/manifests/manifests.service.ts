@@ -3,12 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Manifest, ManifestDocument } from './schemas/manifest.schema';
 import { LocationGateway } from './manifests.gateway';
+import { TrucksService } from '../trucks/trucks.service';
 
 @Injectable()
 export class ManifestsService {
   constructor(
     @InjectModel(Manifest.name) private manifestModel: Model<ManifestDocument>,
     private readonly locationGateway: LocationGateway,
+    private readonly trucksService: TrucksService,
   ) { }
 
   async create(createManifestDto: any): Promise<Manifest> {
@@ -79,6 +81,13 @@ export class ManifestsService {
 
     // Broadcast location update via WebSocket
     this.locationGateway.sendLocationUpdate(id, locationUpdate);
+
+    // Also update the associated truck location
+    if (manifest.truck) {
+      const truckId = manifest.truck.toString();
+      await this.trucksService.updateLocation(truckId, location);
+      this.locationGateway.sendTruckLocationUpdate(truckId, locationUpdate);
+    }
 
     return savedManifest;
   }
