@@ -34,6 +34,18 @@ export class LocationGateway implements OnGatewayConnection {
         }
     }
 
+    @SubscribeMessage('joinTruck')
+    handleJoinTruck(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() truckId: string,
+    ) {
+        if (truckId) {
+            client.join(`truck_${truckId}`);
+            console.log(`Client ${client.id} joined room: truck_${truckId}`);
+            return { event: 'joinedTruck', data: truckId };
+        }
+    }
+
     sendLocationUpdate(manifestId: string, location: any) {
         const payload = {
             manifestId,
